@@ -1,0 +1,125 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 98%;
+    --foreground: 222 21% 16%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 21% 16%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 21% 16%;
+    --primary: 222 21% 16%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 37 33% 64%;
+    --secondary-foreground: 222 21% 16%;
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 9% 46%;
+    --accent: 37 33% 64%;
+    --accent-foreground: 222 21% 16%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 37 33% 64%;
+    --input: 220 13% 91%;
+    --ring: 37 33% 64%;
+    --radius: 0.5rem;
+
+    /* Custom Haven Rush tokens */
+    --champagne: 37 33% 64%;
+    --charcoal: 222 21% 16%;
+    --off-white: 0 0% 98%;
+  }
+
+  .dark {
+    --background: 222 21% 16%;
+    --foreground: 0 0% 98%;
+    --card: 222 18% 20%;
+    --card-foreground: 0 0% 98%;
+    --popover: 222 18% 20%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 37 33% 64%;
+    --primary-foreground: 222 21% 16%;
+    --secondary: 222 18% 25%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 222 18% 25%;
+    --muted-foreground: 220 9% 65%;
+    --accent: 37 33% 64%;
+    --accent-foreground: 222 21% 16%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 222 18% 30%;
+    --input: 222 18% 30%;
+    --ring: 37 33% 64%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+  }
+}
+
+/* Custom animations */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes pulse-gold {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(197, 168, 128, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(197, 168, 128, 0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.6s ease-out forwards;
+}
+
+.animate-shimmer {
+  animation: shimmer 2s infinite;
+  background: linear-gradient(90deg, transparent, rgba(197, 168, 128, 0.1), transparent);
+  background-size: 200% 100%;
+}
+
+.animate-pulse-gold {
+  animation: pulse-gold 2s infinite;
+}
+
+/* Staggered animations */
+.stagger-1 { animation-delay: 0.1s; }
+.stagger-2 { animation-delay: 0.2s; }
+.stagger-3 { animation-delay: 0.3s; }
+.stagger-4 { animation-delay: 0.4s; }
+
+/* Progress bar animation */
+@keyframes progress-fill {
+  from {
+    width: 0%;
+  }
+}
+
+.animate-progress {
+  animation: progress-fill 1s ease-out forwards;
+}
