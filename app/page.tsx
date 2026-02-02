@@ -8,22 +8,25 @@ export default function OpenHouseExperience() {
   const [isCheckedIn, setIsCheckedIn] = useState(false)
   const [visitorName, setVisitorName] = useState("")
 
-  const handleCheckIn = (name: string, email: string) => {
+  const handleCheckIn = async (name: string, email: string) => {
     setVisitorName(name)
     setIsCheckedIn(true)
     
-    // Store visitor data for the agent portal
-    const visitors = JSON.parse(localStorage.getItem("openhouse-visitors") || "[]")
-    const newVisitor = {
-      id: Date.now().toString(),
-      name,
-      email,
-      checkedInAt: new Date().toISOString(),
-      engagementScore: Math.floor(Math.random() * 40) + 10,
-      featuresFound: 0,
-      referralsSent: 0,
+    // Send visitor data to the backend API
+    try {
+      await fetch("/api/moneyball", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "check-in",
+          name,
+          email,
+          checkedInAt: new Date().toISOString(),
+        }),
+      })
+    } catch (error) {
+      console.error("Failed to register check-in:", error)
     }
-    localStorage.setItem("openhouse-visitors", JSON.stringify([...visitors, newVisitor]))
   }
 
   return (

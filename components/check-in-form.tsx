@@ -100,7 +100,7 @@ export function CheckInForm({ onComplete }: CheckInFormProps) {
         }`}
       >
         <span className={`transition-transform duration-300 ${isSubmitting ? "opacity-0" : ""}`}>
-          Start Experience
+          Begin the Property Experience
         </span>
         <ArrowRight
           className={`w-4 h-4 transition-all duration-300 ${

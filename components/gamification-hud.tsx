@@ -19,20 +19,20 @@ export function GamificationHUD({ userName }: GamificationHUDProps) {
   const [scavengerItems, setScavengerItems] = useState<ScavengerItem[]>([
     {
       id: "1",
-      title: "Chef's Kitchen",
-      description: "Find the Sub-Zero refrigerator and wine storage",
+      title: "Gourmet Kitchen",
+      description: "Find the Sub-Zero refrigerator and La Cornue range",
       found: false,
     },
     {
       id: "2",
-      title: "Spa Retreat",
-      description: "Discover the heated floors in the primary bath",
+      title: "Smart Tech",
+      description: "Locate the Crestron control panel and automated blinds",
       found: false,
     },
     {
       id: "3",
-      title: "Smart Home Hub",
-      description: "Locate the Crestron control panel",
+      title: "Primary Suite",
+      description: "Discover the spa bath with heated floors and fireplace",
       found: false,
     },
   ])

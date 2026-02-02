@@ -12,9 +12,10 @@ interface Visitor {
   engagementScore: number
   featuresFound: number
   referralsSent: number
+  timeInHome: number // in minutes
 }
 
-// Demo visitors for when there's no local data
+// Demo visitors for when API returns no data
 const demoVisitors: Visitor[] = [
   {
     id: "demo-1",
@@ -24,6 +25,7 @@ const demoVisitors: Visitor[] = [
     engagementScore: 92,
     featuresFound: 3,
     referralsSent: 2,
+    timeInHome: 47,
   },
   {
     id: "demo-2",
@@ -33,6 +35,7 @@ const demoVisitors: Visitor[] = [
     engagementScore: 78,
     featuresFound: 2,
     referralsSent: 1,
+    timeInHome: 32,
   },
   {
     id: "demo-3",
@@ -42,6 +45,7 @@ const demoVisitors: Visitor[] = [
     engagementScore: 65,
     featuresFound: 2,
     referralsSent: 0,
+    timeInHome: 24,
   },
   {
     id: "demo-4",
@@ -51,6 +55,7 @@ const demoVisitors: Visitor[] = [
     engagementScore: 45,
     featuresFound: 1,
     referralsSent: 0,
+    timeInHome: 15,
   },
   {
     id: "demo-5",
@@ -60,6 +65,7 @@ const demoVisitors: Visitor[] = [
     engagementScore: 28,
     featuresFound: 0,
     referralsSent: 0,
+    timeInHome: 8,
   },
 ]
 
@@ -69,27 +75,31 @@ export default function AgentPortal() {
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date())
   const [useDemoData, setUseDemoData] = useState(false)
 
-  const loadVisitors = () => {
+  const loadVisitors = async () => {
     setIsLoading(true)
-    // Simulate network delay for premium feel
-    setTimeout(() => {
-      const storedVisitors = localStorage.getItem("openhouse-visitors")
-      if (storedVisitors) {
-        const parsed = JSON.parse(storedVisitors)
-        if (parsed.length > 0) {
-          setVisitors(parsed)
+    try {
+      const response = await fetch("/api/moneyball")
+      if (response.ok) {
+        const data = await response.json()
+        if (data.visitors && data.visitors.length > 0) {
+          setVisitors(data.visitors)
           setUseDemoData(false)
         } else {
           setVisitors(demoVisitors)
           setUseDemoData(true)
         }
       } else {
+        // API not available, use demo data
         setVisitors(demoVisitors)
         setUseDemoData(true)
       }
-      setLastUpdated(new Date())
-      setIsLoading(false)
-    }, 400)
+    } catch {
+      // Network error, use demo data
+      setVisitors(demoVisitors)
+      setUseDemoData(true)
+    }
+    setLastUpdated(new Date())
+    setIsLoading(false)
   }
 
   useEffect(() => {
@@ -155,9 +165,9 @@ export default function AgentPortal() {
         <div className="mb-8 space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
             <div className="space-y-2">
-              <h2 className="font-serif text-3xl sm:text-4xl text-foreground">Moneyball Leaderboard</h2>
+              <h2 className="font-serif text-3xl sm:text-4xl text-foreground">Buyer Intent Leaderboard</h2>
               <p className="text-muted-foreground">
-                Real-time visitor engagement analytics
+                Real-time visitor engagement and time-in-home analytics
               </p>
             </div>
             <div className="text-sm text-muted-foreground">
