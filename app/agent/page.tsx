@@ -126,7 +126,7 @@ export default function AgentPortal() {
   const loadData = async () => {
     setIsLoading(true)
     try {
-      const response = await fetch("/api/moneyball")
+      const response = await fetch("/api/signals")
       if (response.ok) {
         const data = await response.json()
         if (data.visitors && data.visitors.length > 0) {

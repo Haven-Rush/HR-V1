@@ -53,14 +53,14 @@ export function GamificationHUD({ userName }: GamificationHUDProps) {
       )
       showNotification(title)
       
-      // Send signal to API
+      // Send feature discovery signal to API
       try {
-        await fetch("/api/moneyball", {
+        await fetch("/api/signals", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            action: "feature-discovered",
-            userName,
+            signal_type: "feature_discovered",
+            user_name: userName,
             feature: title,
             timestamp: new Date().toISOString(),
           }),
@@ -74,10 +74,27 @@ export function GamificationHUD({ userName }: GamificationHUDProps) {
   const discoveredCount = featureItems.filter((item) => item.discovered).length
   const progress = (discoveredCount / featureItems.length) * 100
 
-  const handleReferral = (e: React.FormEvent) => {
+  const handleReferral = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!referralEmail.trim()) return
     setReferralSent(true)
+    
+    // Send referral signal to API
+    try {
+      await fetch("/api/signals", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          signal_type: "referral_sent",
+          user_name: userName,
+          referral_email: referralEmail,
+          timestamp: new Date().toISOString(),
+        }),
+      })
+    } catch (error) {
+      console.error("Failed to send referral signal:", error)
+    }
+    
     setTimeout(() => {
       setReferralEmail("")
       setReferralSent(false)

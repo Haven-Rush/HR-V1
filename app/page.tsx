@@ -12,20 +12,20 @@ export default function OpenHouseExperience() {
     setVisitorName(name)
     setIsCheckedIn(true)
     
-    // Send visitor data to the backend API
+    // Send check-in signal to the backend API
     try {
-      await fetch("/api/moneyball", {
+      await fetch("/api/signals", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          action: "check-in",
+          signal_type: "check_in",
           name,
           email,
-          checkedInAt: new Date().toISOString(),
+          timestamp: new Date().toISOString(),
         }),
       })
     } catch (error) {
-      console.error("Failed to register check-in:", error)
+      console.error("Failed to send check-in signal:", error)
     }
   }
 
