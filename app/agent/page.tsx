@@ -1,8 +1,9 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { RefreshCw, LayoutDashboard, LogOut } from "lucide-react"
-import { MoneyballLeaderboard } from "@/components/moneyball-leaderboard"
+import { RefreshCw, LayoutDashboard, LogOut, Radio } from "lucide-react"
+import { BRILeaderboard } from "@/components/bri-leaderboard"
+import { LiveSignalFeed } from "@/components/live-signal-feed"
 
 interface Visitor {
   id: string
@@ -12,7 +13,15 @@ interface Visitor {
   engagementScore: number
   featuresFound: number
   referralsSent: number
-  timeInHome: number // in minutes
+  timeInHome: number
+}
+
+interface Signal {
+  id: string
+  type: "check-in" | "feature-discovered" | "referral"
+  userName: string
+  detail: string
+  timestamp: string
 }
 
 // Demo visitors for when API returns no data
@@ -69,13 +78,52 @@ const demoVisitors: Visitor[] = [
   },
 ]
 
+const demoSignals: Signal[] = [
+  {
+    id: "sig-1",
+    type: "feature-discovered",
+    userName: "Alexandra C.",
+    detail: "Gourmet Kitchen",
+    timestamp: new Date(Date.now() - 1000 * 60 * 2).toISOString(),
+  },
+  {
+    id: "sig-2",
+    type: "feature-discovered",
+    userName: "Marcus W.",
+    detail: "Smart Tech",
+    timestamp: new Date(Date.now() - 1000 * 60 * 8).toISOString(),
+  },
+  {
+    id: "sig-3",
+    type: "check-in",
+    userName: "Sofia R.",
+    detail: "Checked in",
+    timestamp: new Date(Date.now() - 1000 * 60 * 12).toISOString(),
+  },
+  {
+    id: "sig-4",
+    type: "referral",
+    userName: "Alexandra C.",
+    detail: "Sent referral",
+    timestamp: new Date(Date.now() - 1000 * 60 * 15).toISOString(),
+  },
+  {
+    id: "sig-5",
+    type: "feature-discovered",
+    userName: "James T.",
+    detail: "Primary Suite",
+    timestamp: new Date(Date.now() - 1000 * 60 * 20).toISOString(),
+  },
+]
+
 export default function AgentPortal() {
   const [visitors, setVisitors] = useState<Visitor[]>([])
+  const [signals, setSignals] = useState<Signal[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date())
   const [useDemoData, setUseDemoData] = useState(false)
 
-  const loadVisitors = async () => {
+  const loadData = async () => {
     setIsLoading(true)
     try {
       const response = await fetch("/api/moneyball")
@@ -83,19 +131,21 @@ export default function AgentPortal() {
         const data = await response.json()
         if (data.visitors && data.visitors.length > 0) {
           setVisitors(data.visitors)
+          setSignals(data.signals || [])
           setUseDemoData(false)
         } else {
           setVisitors(demoVisitors)
+          setSignals(demoSignals)
           setUseDemoData(true)
         }
       } else {
-        // API not available, use demo data
         setVisitors(demoVisitors)
+        setSignals(demoSignals)
         setUseDemoData(true)
       }
     } catch {
-      // Network error, use demo data
       setVisitors(demoVisitors)
+      setSignals(demoSignals)
       setUseDemoData(true)
     }
     setLastUpdated(new Date())
@@ -103,14 +153,13 @@ export default function AgentPortal() {
   }
 
   useEffect(() => {
-    loadVisitors()
-    // Auto-refresh every 30 seconds
-    const interval = setInterval(loadVisitors, 30000)
+    loadData()
+    const interval = setInterval(loadData, 30000)
     return () => clearInterval(interval)
   }, [])
 
   const handleRefresh = () => {
-    loadVisitors()
+    loadData()
   }
 
   const formatTime = (date: Date) => {
@@ -135,7 +184,7 @@ export default function AgentPortal() {
                 </span>
               </div>
               <div className="hidden sm:block h-6 w-px bg-champagne/20" />
-              <h1 className="hidden sm:block font-serif text-xl text-foreground">Agent Portal</h1>
+              <h1 className="hidden sm:block font-serif text-xl text-foreground">Agent Analytics</h1>
             </div>
 
             <div className="flex items-center gap-4">
@@ -165,9 +214,14 @@ export default function AgentPortal() {
         <div className="mb-8 space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
             <div className="space-y-2">
-              <h2 className="font-serif text-3xl sm:text-4xl text-foreground">Buyer Intent Leaderboard</h2>
+              <div className="flex items-center gap-3">
+                <h2 className="font-serif text-3xl sm:text-4xl text-foreground">BRI Leaderboard</h2>
+                <span className="px-3 py-1 text-xs tracking-widest uppercase bg-champagne/10 border border-champagne/30 text-champagne">
+                  Buyer Readiness Index
+                </span>
+              </div>
               <p className="text-muted-foreground">
-                Real-time visitor engagement and time-in-home analytics
+                Real-time buyer intent signals and engagement analytics
               </p>
             </div>
             <div className="text-sm text-muted-foreground">
@@ -184,24 +238,43 @@ export default function AgentPortal() {
           )}
         </div>
 
-        {/* Leaderboard */}
-        {isLoading ? (
-          <div className="flex items-center justify-center py-20">
-            <div className="space-y-4 text-center">
-              <div className="w-8 h-8 mx-auto border-2 border-champagne border-t-transparent rounded-full animate-spin" />
-              <p className="text-sm text-muted-foreground">Loading visitor data...</p>
+        {/* Main Grid */}
+        <div className="grid lg:grid-cols-3 gap-8">
+          {/* Leaderboard */}
+          <div className="lg:col-span-2">
+            {isLoading ? (
+              <div className="flex items-center justify-center py-20">
+                <div className="space-y-4 text-center">
+                  <div className="w-8 h-8 mx-auto border-2 border-champagne border-t-transparent rounded-full animate-spin" />
+                  <p className="text-sm text-muted-foreground">Loading visitor data...</p>
+                </div>
+              </div>
+            ) : (
+              <BRILeaderboard visitors={visitors} />
+            )}
+          </div>
+
+          {/* Live Signal Feed */}
+          <div className="lg:col-span-1">
+            <div className="sticky top-24">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="relative">
+                  <Radio className="w-4 h-4 text-champagne" />
+                  <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-champagne rounded-full animate-ping" />
+                </div>
+                <h3 className="text-xs tracking-widest uppercase text-champagne">Live Signal Feed</h3>
+              </div>
+              <LiveSignalFeed signals={signals} />
             </div>
           </div>
-        ) : (
-          <MoneyballLeaderboard visitors={visitors} />
-        )}
+        </div>
       </main>
 
       {/* Footer */}
       <footer className="border-t border-champagne/10 mt-16">
         <div className="max-w-7xl mx-auto px-6 py-6">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-muted-foreground">
-            <p>Agent Dashboard | The Meridian Estate Open House</p>
+            <p>Agent Analytics Dashboard | The Meridian Estate</p>
             <p className="tracking-widest uppercase">Haven Rush</p>
           </div>
         </div>

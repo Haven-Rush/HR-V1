@@ -1,13 +1,13 @@
 "use client"
 
-import { useState } from "react"
-import { Search, Users, Check, Send } from "lucide-react"
+import { useState, useEffect } from "react"
+import { Compass, Users, Check, Send, Radio } from "lucide-react"
 
-interface ScavengerItem {
+interface FeatureItem {
   id: string
   title: string
   description: string
-  found: boolean
+  discovered: boolean
 }
 
 interface GamificationHUDProps {
@@ -15,38 +15,64 @@ interface GamificationHUDProps {
 }
 
 export function GamificationHUD({ userName }: GamificationHUDProps) {
-  const [activeTab, setActiveTab] = useState<"hunt" | "referral">("hunt")
-  const [scavengerItems, setScavengerItems] = useState<ScavengerItem[]>([
+  const [activeTab, setActiveTab] = useState<"discovery" | "referral">("discovery")
+  const [notification, setNotification] = useState<string | null>(null)
+  const [featureItems, setFeatureItems] = useState<FeatureItem[]>([
     {
       id: "1",
       title: "Gourmet Kitchen",
-      description: "Find the Sub-Zero refrigerator and La Cornue range",
-      found: false,
+      description: "Sub-Zero refrigerator and La Cornue range",
+      discovered: false,
     },
     {
       id: "2",
       title: "Smart Tech",
-      description: "Locate the Crestron control panel and automated blinds",
-      found: false,
+      description: "Crestron control panel and automated blinds",
+      discovered: false,
     },
     {
       id: "3",
       title: "Primary Suite",
-      description: "Discover the spa bath with heated floors and fireplace",
-      found: false,
+      description: "Spa bath with heated floors and fireplace",
+      discovered: false,
     },
   ])
   const [referralEmail, setReferralEmail] = useState("")
   const [referralSent, setReferralSent] = useState(false)
 
-  const toggleFound = (id: string) => {
-    setScavengerItems((items) =>
-      items.map((item) => (item.id === id ? { ...item, found: !item.found } : item))
-    )
+  const showNotification = (featureTitle: string) => {
+    setNotification(featureTitle)
+    setTimeout(() => setNotification(null), 3000)
   }
 
-  const foundCount = scavengerItems.filter((item) => item.found).length
-  const progress = (foundCount / scavengerItems.length) * 100
+  const toggleDiscovered = async (id: string, title: string) => {
+    const item = featureItems.find((i) => i.id === id)
+    if (item && !item.discovered) {
+      setFeatureItems((items) =>
+        items.map((i) => (i.id === id ? { ...i, discovered: true } : i))
+      )
+      showNotification(title)
+      
+      // Send signal to API
+      try {
+        await fetch("/api/moneyball", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "feature-discovered",
+            userName,
+            feature: title,
+            timestamp: new Date().toISOString(),
+          }),
+        })
+      } catch (error) {
+        console.error("Failed to send signal:", error)
+      }
+    }
+  }
+
+  const discoveredCount = featureItems.filter((item) => item.discovered).length
+  const progress = (discoveredCount / featureItems.length) * 100
 
   const handleReferral = (e: React.FormEvent) => {
     e.preventDefault()
@@ -60,22 +86,40 @@ export function GamificationHUD({ userName }: GamificationHUDProps) {
 
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-card border-t border-champagne/20 shadow-lg z-50">
+      {/* Intent Signal Notification */}
+      <div
+        className={`absolute -top-16 left-1/2 -translate-x-1/2 transition-all duration-500 ${
+          notification ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4 pointer-events-none"
+        }`}
+      >
+        <div className="flex items-center gap-3 px-5 py-3 bg-charcoal border border-champagne/40 shadow-xl">
+          <div className="relative">
+            <Radio className="w-4 h-4 text-champagne" />
+            <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-champagne rounded-full animate-ping" />
+          </div>
+          <div>
+            <p className="text-xs tracking-widest uppercase text-champagne">Intent Signal Captured</p>
+            <p className="text-sm text-foreground">{notification}</p>
+          </div>
+        </div>
+      </div>
+
       {/* Tab Navigation */}
       <div className="flex border-b border-champagne/10">
         <button
-          onClick={() => setActiveTab("hunt")}
+          onClick={() => setActiveTab("discovery")}
           className={`flex-1 flex items-center justify-center gap-2 py-4 text-sm tracking-widest uppercase transition-all duration-300 ${
-            activeTab === "hunt"
+            activeTab === "discovery"
               ? "text-champagne border-b-2 border-champagne bg-champagne/5"
               : "text-muted-foreground hover:text-foreground"
           }`}
         >
-          <Search className="w-4 h-4" />
-          <span className="hidden sm:inline">Scavenger Hunt</span>
-          <span className="sm:hidden">Hunt</span>
-          {foundCount > 0 && (
+          <Compass className="w-4 h-4" />
+          <span className="hidden sm:inline">Feature Discovery</span>
+          <span className="sm:hidden">Discovery</span>
+          {discoveredCount > 0 && (
             <span className="ml-1 px-2 py-0.5 text-xs bg-champagne text-charcoal rounded-full">
-              {foundCount}/{scavengerItems.length}
+              {discoveredCount}/{featureItems.length}
             </span>
           )}
         </button>
@@ -95,13 +139,13 @@ export function GamificationHUD({ userName }: GamificationHUDProps) {
 
       {/* Tab Content */}
       <div className="max-h-[50vh] overflow-y-auto">
-        {activeTab === "hunt" && (
+        {activeTab === "discovery" && (
           <div className="p-6 space-y-4">
             {/* Progress Bar */}
             <div className="space-y-2">
               <div className="flex justify-between text-xs tracking-widest uppercase text-muted-foreground">
-                <span>Progress</span>
-                <span>{Math.round(progress)}%</span>
+                <span>Discovery Progress</span>
+                <span>{discoveredCount} of {featureItems.length}</span>
               </div>
               <div className="h-1 bg-muted rounded-full overflow-hidden">
                 <div
@@ -111,45 +155,51 @@ export function GamificationHUD({ userName }: GamificationHUDProps) {
               </div>
             </div>
 
-            {/* Scavenger Items */}
+            {/* Feature Items */}
             <div className="space-y-3">
-              {scavengerItems.map((item, index) => (
+              {featureItems.map((item, index) => (
                 <button
                   key={item.id}
-                  onClick={() => toggleFound(item.id)}
+                  onClick={() => toggleDiscovered(item.id, item.title)}
+                  disabled={item.discovered}
                   className={`w-full flex items-start gap-4 p-4 border transition-all duration-300 text-left ${
-                    item.found
-                      ? "border-champagne bg-champagne/5"
+                    item.discovered
+                      ? "border-champagne bg-champagne/5 cursor-default"
                       : "border-champagne/20 hover:border-champagne/40"
                   }`}
                   style={{ animationDelay: `${index * 0.1}s` }}
                 >
                   <div
-                    className={`flex-shrink-0 w-6 h-6 border rounded-full flex items-center justify-center transition-all duration-300 ${
-                      item.found ? "bg-champagne border-champagne" : "border-champagne/40"
+                    className={`flex-shrink-0 w-6 h-6 border flex items-center justify-center transition-all duration-300 ${
+                      item.discovered ? "bg-champagne border-champagne" : "border-champagne/40"
                     }`}
                   >
-                    {item.found && <Check className="w-4 h-4 text-charcoal" />}
+                    {item.discovered && <Check className="w-4 h-4 text-charcoal" />}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h4
-                      className={`font-serif text-lg transition-colors duration-300 ${
-                        item.found ? "text-champagne" : "text-foreground"
-                      }`}
-                    >
-                      {item.title}
-                    </h4>
+                    <div className="flex items-center gap-2">
+                      <h4
+                        className={`font-serif text-lg transition-colors duration-300 ${
+                          item.discovered ? "text-champagne" : "text-foreground"
+                        }`}
+                      >
+                        {item.title}
+                      </h4>
+                      {item.discovered && (
+                        <span className="text-xs tracking-widest uppercase text-champagne/70">Discovered</span>
+                      )}
+                    </div>
                     <p className="text-sm text-muted-foreground mt-0.5">{item.description}</p>
                   </div>
                 </button>
               ))}
             </div>
 
-            {foundCount === scavengerItems.length && (
+            {discoveredCount === featureItems.length && (
               <div className="text-center py-4 border border-champagne bg-champagne/10">
-                <p className="font-serif text-lg text-champagne">Congratulations, {userName}!</p>
+                <p className="font-serif text-lg text-champagne">Complete Profile, {userName}</p>
                 <p className="text-sm text-muted-foreground mt-1">
-                  You discovered all premium features
+                  All features discovered — high buyer intent captured
                 </p>
               </div>
             )}
