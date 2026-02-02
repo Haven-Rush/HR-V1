@@ -12,9 +12,10 @@ interface FeatureItem {
 
 interface GamificationHUDProps {
   userName: string
+  propId: string
 }
 
-export function GamificationHUD({ userName }: GamificationHUDProps) {
+export function GamificationHUD({ userName, propId }: GamificationHUDProps) {
   const [activeTab, setActiveTab] = useState<"discovery" | "referral">("discovery")
   const [notification, setNotification] = useState<string | null>(null)
   const [featureItems, setFeatureItems] = useState<FeatureItem[]>([
@@ -60,6 +61,7 @@ export function GamificationHUD({ userName }: GamificationHUDProps) {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             signal_type: "feature_discovered",
+            prop_id: propId,
             user_name: userName,
             feature: title,
             timestamp: new Date().toISOString(),
@@ -86,6 +88,7 @@ export function GamificationHUD({ userName }: GamificationHUDProps) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           signal_type: "referral_sent",
+          prop_id: propId,
           user_name: userName,
           referral_email: referralEmail,
           timestamp: new Date().toISOString(),

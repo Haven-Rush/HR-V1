@@ -1,10 +1,14 @@
 "use client"
 
 import { useState } from "react"
+import { useSearchParams } from "next/navigation"
 import { CheckInForm } from "@/components/check-in-form"
 import { GamificationHUD } from "@/components/gamification-hud"
 
 export default function OpenHouseExperience() {
+  const searchParams = useSearchParams()
+  const propId = searchParams.get("propId") || ""
+  
   const [isCheckedIn, setIsCheckedIn] = useState(false)
   const [visitorName, setVisitorName] = useState("")
 
@@ -19,6 +23,7 @@ export default function OpenHouseExperience() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           signal_type: "check_in",
+          prop_id: propId,
           name,
           email,
           timestamp: new Date().toISOString(),
@@ -34,7 +39,7 @@ export default function OpenHouseExperience() {
       {!isCheckedIn ? (
         <WelcomeScreen onComplete={handleCheckIn} />
       ) : (
-        <ExperienceScreen userName={visitorName} />
+        <ExperienceScreen userName={visitorName} propId={propId} />
       )}
     </main>
   )
@@ -81,7 +86,7 @@ function WelcomeScreen({ onComplete }: { onComplete: (name: string, email: strin
   )
 }
 
-function ExperienceScreen({ userName }: { userName: string }) {
+function ExperienceScreen({ userName, propId }: { userName: string; propId: string }) {
   const firstName = userName.split(" ")[0]
 
   return (
@@ -134,7 +139,7 @@ function ExperienceScreen({ userName }: { userName: string }) {
       </div>
 
       {/* Gamification HUD */}
-      <GamificationHUD userName={firstName} />
+      <GamificationHUD userName={firstName} propId={propId} />
     </div>
   )
 }
